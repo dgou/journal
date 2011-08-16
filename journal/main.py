@@ -8,10 +8,20 @@ from datetime import datetime
 
 from journal import __version__
 
-JOURNAL_DEST = ".journal"
+JOURNAL_ROOT = path.expanduser("~")
+JOURNAL_DEST = path.join(JOURNAL_ROOT, ".journal")
+JOURNAL_ENTRY_FORMAT = "%a %I:%M:%S %Y-%m-%d"
+JOURNAL_FILE_FORMAT = "%Y.%m.%d"
+
+def make_sure_dir_exists(some_dir):
+    if not path.exists(some_dir):
+        try:
+            makedirs(some_dir)
+        except:
+            print "journal: error: creating", some_dir
+            sys.exit()
 
 def parse_args():
-    #parsing
     parser = argparse.ArgumentParser(
             description='Simple CLI tool to help with keeping a work/personal journal',
             version=__version__)
@@ -21,37 +31,22 @@ def parse_args():
     return parser, parser.parse_args()
 
 def check_journal_dest():
-    journal_dir = path.expanduser("~/" + JOURNAL_DEST)
-    if not path.exists(journal_dir):
-        try:
-            makedirs(journal_dir)
-        except:
-            print "journal: error: creating journal storage directory failed"
-            sys.exit()
+    make_sure_dir_exists(JOURNAL_DEST)
+
+def build_journal_path(date):
+    return path.join(JOURNAL_DEST, date.strftime(JOURNAL_FILE_FORMAT) + ".txt")
 
 def record_entry(entry):
     check_journal_dest()
     current_date = datetime.today()
-    update_date = current_date.strftime("%a %I:%M:%S %Y-%m-%d")
+    update_date = current_date.strftime(JOURNAL_ENTRY_FORMAT)
     entry = update_date + "\n-" + entry + "\n\n"
     with open(build_journal_path(current_date), "a") as date_file:
         date_file.write(entry)
 
-def build_journal_path(date):
-    date_filename = path.expanduser("".join(
-        [ "~/", JOURNAL_DEST, '/', date.strftime("%Y.%m.%d"), ".txt"]
-        ))
-    return date_filename
-
-def show_today():
-    current_date = datetime.today()
-    return show_entry(current_date)
-
 def show_entry(date):
     """
-    args
-    date - datetime object
-    returns entry text or None if entry doesn't exist
+    returns entry text for given date or None if entry doesn't exist
     """
     try:
         with open(build_journal_path(date), "r") as entry_file:
@@ -59,8 +54,10 @@ def show_entry(date):
     except IOError:
         return None
 
+def show_today():
+    return show_entry(datetime.today())
+
 def main():
-    #parse args
     parser, args = parse_args()
 
     if not str.strip(args.entry):
