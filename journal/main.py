@@ -10,7 +10,7 @@ from journal import __version__
 
 JOURNAL_ROOT = path.expanduser("~")
 JOURNAL_DEST = path.join(JOURNAL_ROOT, ".journal")
-JOURNAL_ENTRY_FORMAT = "%a %I:%M:%S %Y-%m-%d"
+JOURNAL_ENTRY_FORMAT = "%Y.%m.%d %I:%M:%S %a"
 JOURNAL_FILE_FORMAT = "%Y.%m.%d"
 
 def make_sure_dir_exists(some_dir):
