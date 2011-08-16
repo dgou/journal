@@ -25,10 +25,15 @@ def parse_args():
     parser = argparse.ArgumentParser(
             description='Simple CLI tool to help with keeping a work/personal journal',
             version=__version__)
+    parser.add_argument('-t', '--today',
+                        action="store_true",
+                        help="show today's entries and exit.")
     parser.add_argument('entry',
-            action="store",
+            nargs='*',
             help="Text to make an entry in your journal")
-    return parser, parser.parse_args()
+    result = parser.parse_args()
+    result.entry = " ".join(result.entry).strip()
+    return result, parser.format_help()
 
 def check_journal_dest():
     make_sure_dir_exists(JOURNAL_DEST)
@@ -58,20 +63,20 @@ def show_today():
     return show_entry(datetime.today())
 
 def main():
-    parser, args = parse_args()
+    args, help_string = parse_args()
 
-    if not str.strip(args.entry):
-        parser.print_help()
-        sys.exit()
-    elif args.entry == 'today':
+    if args.today:
         entry = show_today()
         if entry:
             print entry
         else:
-            print "journal: error: entry not found on that date"
+            print "journal: error: entry not found for today"
             sys.exit()
-    else:
+    elif args.entry:
         record_entry(args.entry)
+    else:
+        print help_string
+        sys.exit()
 
 if __name__ == "__main__":
     main()
