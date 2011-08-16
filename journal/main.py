@@ -31,6 +31,9 @@ def parse_args():
     parser.add_argument('-f', '--file',
                         action="store_true",
                         help="show the name of the journal log file and exit.")
+    parser.add_argument('-l', '--long',
+                        action="store_true",
+                        help='long entry. Read entry from stdin instead of command line.')
     parser.add_argument('entry',
             nargs='*',
             help="Text to make an entry in your journal")
@@ -43,6 +46,9 @@ def check_journal_dest():
 
 def build_journal_path(date):
     return path.join(JOURNAL_DEST, date.strftime(JOURNAL_FILE_FORMAT) + ".txt")
+
+def get_stdin_entry():
+    return "\n".join(sys.stdin.readlines())
 
 def record_entry(entry):
     check_journal_dest()
@@ -78,6 +84,8 @@ def main():
     elif args.file:
         print build_journal_path(datetime.today())
         sys.exit()
+    elif args.long:
+        record_entry(get_stdin_entry())
     elif args.entry:
         record_entry(args.entry)
     else:
