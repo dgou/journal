@@ -28,6 +28,9 @@ def parse_args():
     parser.add_argument('-t', '--today',
                         action="store_true",
                         help="show today's entries and exit.")
+    parser.add_argument('-f', '--file',
+                        action="store_true",
+                        help="show the name of the journal log file and exit.")
     parser.add_argument('entry',
             nargs='*',
             help="Text to make an entry in your journal")
@@ -72,6 +75,9 @@ def main():
         else:
             print "journal: error: entry not found for today"
             sys.exit()
+    elif args.file:
+        print build_journal_path(datetime.today())
+        sys.exit()
     elif args.entry:
         record_entry(args.entry)
     else:
