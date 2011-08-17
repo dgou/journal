@@ -12,7 +12,7 @@ from journal import __version__
 DEFAULT_EDITOR = "vim"
 JOURNAL_ROOT = path.expanduser("~")
 JOURNAL_DEST = path.join(JOURNAL_ROOT, ".journal")
-JOURNAL_ENTRY_FORMAT = "%Y.%m.%d %I:%M:%S %a"
+JOURNAL_ENTRY_FORMAT = "%Y.%m.%d %I:%M:%S %a\n"
 JOURNAL_FILE_FORMAT = "%Y.%m.%d"
 
 def make_sure_dir_exists(some_dir):
@@ -22,6 +22,10 @@ def make_sure_dir_exists(some_dir):
         except:
             print "journal: error: creating", some_dir
             sys.exit()
+
+def indent_lines(lines, amount=4):
+    prefix = " " * amount
+    return [prefix + line for line in lines]
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -43,7 +47,8 @@ def parse_args():
             nargs='*',
             help="Text to make an entry in your journal")
     result = parser.parse_args()
-    result.entry = " ".join(result.entry).strip()
+    if result.entry:
+        result.entry = " ".join(result.entry) + "\n"
     return result, parser.format_help()
 
 def check_journal_dest():
@@ -53,13 +58,13 @@ def build_journal_path(date):
     return path.join(JOURNAL_DEST, date.strftime(JOURNAL_FILE_FORMAT) + ".txt")
 
 def get_stdin_entry():
-    return "\n".join(sys.stdin.readlines())
+    return sys.stdin.readlines()
 
-def record_entry(entry):
+def record_entry(entry_list):
     check_journal_dest()
     current_date = datetime.today()
     update_date = current_date.strftime(JOURNAL_ENTRY_FORMAT)
-    entry = update_date + "\n-" + entry + "\n\n"
+    entry = update_date + "".join(indent_lines(entry_list)) + "\n"
     with open(build_journal_path(current_date), "a") as date_file:
         date_file.write(entry)
 
@@ -87,10 +92,10 @@ def main():
     if args.today:
         entry = show_today()
         if entry:
-            print entry
+            sys.stdout.write(entry)
         else:
             print "journal: error: entry not found for today"
-            sys.exit()
+        sys.exit()
     elif args.file:
         print journal_file_name
         sys.exit()
@@ -101,7 +106,7 @@ def main():
         sys.exit()
 
     if args.entry:
-        record_entry(args.entry)
+        record_entry([args.entry])
 
     if args.edit:
         do_edit(journal_file_name)
